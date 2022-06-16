@@ -28,7 +28,7 @@ stages{
   sh "mvn clean package"
   }
  }
-
+/*
  stage( 'ExecuteSonarQubeReport' ) {
   steps{
   sh "mvn clean sonar:sonar"
@@ -64,7 +64,7 @@ Regards,
 Monika''', subject: 'Build is over - failed!!', to: 'monikanh1997@gmail.com'
 }
 
-
+*/
 }
  
 }
