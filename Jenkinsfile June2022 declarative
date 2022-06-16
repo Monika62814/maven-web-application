@@ -1,0 +1,70 @@
+pipeline{
+
+agent any
+
+ triggers{
+   pollSCM('* * * * *')
+}
+  
+options{
+    timestamps()
+   buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '5', daysToKeepStr: '', numToKeepStr: '5'))
+}
+
+tools{
+maven "maven3.6.3"
+}
+
+stages{
+
+ stage( 'CheckoutCode' ) {
+ steps{
+ git branch: 'development', credentialsId: '58385111-aa38-418d-909c-20a97901cc97', url: 'https://github.com/Monika62814/maven-web-application.git'
+ }
+ }
+
+ stage( 'Build' ) {
+  steps{
+  sh "mvn clean package"
+  }
+ }
+
+ stage( 'ExecuteSonarQubeReport' ) {
+  steps{
+  sh "mvn clean sonar:sonar"
+  }
+ }
+
+  stage( 'UploadArtifactIntoNexus' ) {
+  steps{
+  sh "mvn clean deploy"
+  }
+ }
+   stage ( 'DeployAppIntoTomcatServer') {
+     steps{  
+     sshagent(['74b45fc9-58a0-4e48-917e-415dcab8c3a3']) {
+     sh  "scp -o StrictHostKeyChecking=no target/maven-web-application.war  ec2-user@65.1.248.215:/opt/apache-tomcat-9.0.63/webapps/"
+     }
+ }
+ } 
+ 
+}
+post{
+
+ success{
+ emailext body: '''Build is over - success!!
+
+Regards,
+Monika''', subject: 'Build is over - success!!', to: 'monikanh1997@gmail.com'
+}
+ failure{
+emailext body: '''Build is over - failed!!
+
+Regards,
+Monika''', subject: 'Build is over - failed!!', to: 'monikanh1997@gmail.com'
+}
+
+
+}
+ 
+}
